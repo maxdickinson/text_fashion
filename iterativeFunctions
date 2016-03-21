@@ -1,0 +1,111 @@
+from bs4 import BeautifulSoup
+import requests
+import os
+import pandas as pd
+import re
+import numpy as np
+import re
+import numpy as np
+import  time
+
+
+def allocrFromApi(url):
+    #url is a string of the library of congress api,returns all links that are newspaper articles
+    import re
+    import numpy as np
+    import  time
+    ocr="ocr.txt"
+    url2="http://chroniclingamerica.loc.gov"
+    response=requests.get(url)
+    time.sleep(0.1)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    cleanlinks=np.array(np.empty((0,0)))
+    links=soup.find_all("a")
+    for link in links:
+        try:#if no href attribute
+            lccn=re.compile(r'lccn')#re object
+            obj=lccn.search(link['href'])
+            try:#if no semicolon
+                ext=obj.string.split(';')[0]
+                full=url2+ext+ocr
+                #run function
+            except:AttributeError
+        except:KeyError
+        try:
+            cleanlinks=np.append(cleanlinks,full)
+        except:UnboundLocalError
+    return cleanlinks.tolist()
+def docclean(link):
+    #preprocessing, returns string,takes string,
+    #makes 1 request to api for ocr text write output to file
+    response=requests.get(link)
+    import time 
+    time.sleep(0.15)
+    soup = BeautifulSoup(response.content, 'html.parser')
+    text = ' '.join(list(soup.stripped_strings))
+    a=re.sub(r'\n',' ',text)
+    a=re.sub(r'\\','',a)#does   nothing
+
+    return a
+
+def makedirect(base,fname):
+    #make a directory at path name and file name
+    import os
+    #base="C:\\Users\\maxwell\\Documents\\DHfasion"
+    fname=str(fname)
+    slash='\\'
+    ext=slash+fname
+    base+=ext
+    if os.path.isdir(base):
+        pass
+    else:
+        os.mkdir(base)
+    return
+def writeto(base,fname,text):
+    #path of base with fname 
+    import os
+    fname=str(fname)
+    os.chdir(base+fname)
+    ext='.txt'
+    try:
+        with open(fname+ext,'w',encoding='utf8') as f:#create text file
+            f.write(text)
+            f.close()
+    except (UnicodeEncodeError,FileExistsError) as e:
+        print(e)
+        f.close()
+    return 
+def pipepagetotextfiles(url,filenum):
+    #turns a url of  libOC into ocr text saved inb directory of base. 
+    #20 files in each page of links so must track how many files already.
+    import numpy as np
+    #print(filenum)
+    base="C:\\Users\\maxwell\\Documents\\gap20\\"
+    cl=allocrFromApi(url)
+    num=filenum
+    for link in pd.unique(cl):
+        print(link)
+    #make this part into delayedwhile loop 
+        b=docclean(link)
+        #onlytaking one link
+        makedirect(base,num)##this works
+        writeto(base,num,b)
+        num+=1
+    return num
+    
+def createfiles(url,start,stop,filesalready):
+    import  numpy as np
+    #stop is the number of links on the loc page,start is the first file to create with that number range is number of pages to look at in list mode.
+    for i in np.arange(start,stop):
+        print(filesalready)
+        #this will give 3 and  4
+        #only use numbers in prechecked range of 1-48517
+        pipepagetotextfiles(url,filesalready)#change numof files everytime to reflect all of them
+        filesalready+=20#number of rows in each list by url 
+    return filesalready
+url="http://chroniclingamerica.loc.gov/search/pages/results/list/?date1=1890&rows=20&search     Type=basic&state=&date2=1910&proxtext=fashion&y=0&x=0&dateFilterType=yearRange&page="+str(i)+"&sort=r elevance"
+createfiles(url,1,2,60000)
+
+
+
+ 
